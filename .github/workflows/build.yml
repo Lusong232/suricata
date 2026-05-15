@@ -198,8 +198,8 @@ jobs:
             sudo cp -r etc/* /etc/
             suricata --build-info
           
-         files: release-assets/*
-         draft: false
-         prerelease: false
-      env:
-         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          files: release-assets/*
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
