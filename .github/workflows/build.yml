@@ -7,13 +7,16 @@ on:
   workflow_dispatch:
 
 jobs:
+  # ============================================================
+  #  Ubuntu 22.04 和 24.04 原生构建（资源充足）
+  # ============================================================
   build-ubuntu:
     name: Ubuntu ${{ matrix.ubuntu_version }}
     runs-on: ubuntu-${{ matrix.ubuntu_version }}
     strategy:
       fail-fast: false
       matrix:
-        ubuntu_version: ['20.04', '22.04', '24.04']
+        ubuntu_version: ['22.04', '24.04']   # 20.04 已改为 Docker 构建
     steps:
       - uses: actions/checkout@v4
 
@@ -36,7 +39,7 @@ jobs:
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
-      - name: Install cbindgen (fixed version)
+      - name: Install cbindgen
         run: |
           source $HOME/.cargo/env
           cargo install cbindgen --version 0.28.0
@@ -67,6 +70,9 @@ jobs:
           path: ${{ steps.package.outputs.artifact_name }}
           retention-days: 7
 
+  # ============================================================
+  #  Docker 容器构建（覆盖更多 Linux 发行版）
+  # ============================================================
   build-docker:
     name: ${{ matrix.distro }}
     runs-on: ubuntu-latest
@@ -74,6 +80,21 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # --------------- Ubuntu 20.04 (Docker) ---------------
+          - distro: ubuntu-20.04
+            image: ubuntu:20.04
+            install_cmd: |
+              apt-get update && apt-get install -y --no-install-recommends \
+                autoconf automake libtool gcc g++ make pkg-config \
+                libpcre2-dev libnet1-dev libyaml-dev zlib1g-dev \
+                libcap-ng-dev libmagic-dev libevent-dev \
+                libnetfilter-queue-dev libnetfilter-log-dev \
+                libnfnetlink-dev libjansson-dev \
+                libhiredis-dev liblz4-dev libhyperscan-dev libpcap-dev \
+                python3 python3-pip curl ca-certificates && \
+              curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+            configure_opts: --prefix=/usr --sysconfdir=/etc --localstatedir=/var --enable-nfqueue --enable-hyperscan
+
           # ----------------- Debian 11 -----------------
           - distro: debian-11
             image: debian:11
@@ -154,11 +175,8 @@ jobs:
           docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace ${{ matrix.image }} bash -c "
             set -e
             ${{ matrix.install_cmd }}
-            # 确保 Rust 环境生效
             source \$HOME/.cargo/env
-            # 安装 cbindgen
             cargo install cbindgen --version 0.28.0
-            # 再次确保 PATH 包含 .cargo/bin
             export PATH=\$HOME/.cargo/bin:\$PATH
             ./autogen.sh
             ./configure ${{ matrix.configure_opts }}
@@ -180,6 +198,9 @@ jobs:
           path: ${{ steps.package.outputs.artifact_name }}
           retention-days: 7
 
+  # ============================================================
+  #  发布 Release（仅当推送 tag 时运行）
+  # ============================================================
   release:
     name: Create Release
     runs-on: ubuntu-latest
