@@ -128,7 +128,7 @@ jobs:
                 pcre2-devel libnet-devel libyaml-devel zlib-devel \
                 libcap-ng-devel file-devel libevent-devel \
                 libnetfilter_queue-devel libnfnetlink-devel jansson-devel \
-                hiredis-devel lz4-devel libpcap-devel which python3 python3-pip curl && \
+                hiredis-devel lz4-devel libpcap-devel which python3 python3-pip && \
               curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
             configure_opts: --prefix=/usr --sysconfdir=/etc --localstatedir=/var --enable-nfqueue
 
@@ -142,7 +142,7 @@ jobs:
                 libcap-ng-devel file-devel libevent-devel \
                 libnetfilter_queue-devel libnfnetlink-devel jansson-devel \
                 hiredis-devel lz4-devel hyperscan-devel libpcap-devel \
-                python3 python3-pip curl && \
+                which python3 python3-pip curl && \
               curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
             configure_opts: --prefix=/usr --sysconfdir=/etc --localstatedir=/var --enable-nfqueue --enable-hyperscan
 
