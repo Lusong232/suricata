@@ -31,6 +31,9 @@ jobs:
             libpcap-dev \
             python3 python3-pip cargo rustc
 
+      - name: Install cbindgen
+        run: cargo install cbindgen
+
       - name: Generate configure script
         run: ./autogen.sh
 
@@ -137,6 +140,7 @@ jobs:
             if [ -f \$HOME/.cargo/env ]; then
               source \$HOME/.cargo/env
             fi
+            cargo install cbindgen
             ./autogen.sh
             ./configure ${{ matrix.configure_opts }}
             make -j\$(nproc)
