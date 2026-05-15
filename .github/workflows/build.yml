@@ -3,13 +3,10 @@ name: Multi-Platform Build and Release
 on:
   push:
     tags:
-      - 'v*'          # 仅推送标签时触发，避免普通 push 大量构建
-  workflow_dispatch:   # 允许手动运行
+      - 'v*'
+  workflow_dispatch:
 
 jobs:
-  # ============================================================
-  #  Ubuntu 原生构建（使用 GitHub 提供的 Ubuntu 运行器）
-  # ============================================================
   build-ubuntu:
     name: Ubuntu ${{ matrix.ubuntu_version }}
     runs-on: ubuntu-${{ matrix.ubuntu_version }}
@@ -59,9 +56,6 @@ jobs:
           path: ${{ steps.package.outputs.artifact_name }}
           retention-days: 7
 
-  # ============================================================
-  #  基于 Docker 的其他 Linux 发行版构建
-  # ============================================================
   build-docker:
     name: ${{ matrix.distro }}
     runs-on: ubuntu-latest
@@ -69,7 +63,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # ----------------- Debian 11 -----------------
           - distro: debian-11
             image: debian:11
             install_cmd: |
@@ -83,9 +76,7 @@ jobs:
                 python3 python3-pip curl ca-certificates && \
               curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
             configure_opts: --prefix=/usr --sysconfdir=/etc --localstatedir=/var --enable-nfqueue
-            # Debian 11 没有 hyperscan 包，因此不启用
 
-          # ----------------- Debian 12 -----------------
           - distro: debian-12
             image: debian:12
             install_cmd: |
@@ -99,7 +90,6 @@ jobs:
                 python3 python3-pip cargo rustc
             configure_opts: --prefix=/usr --sysconfdir=/etc --localstatedir=/var --enable-nfqueue --enable-hyperscan
 
-          # ----------------- Rocky Linux 8 -----------------
           - distro: rockylinux-8
             image: rockylinux:8
             install_cmd: |
@@ -108,12 +98,10 @@ jobs:
                 pcre-devel libnet-devel libyaml-devel zlib-devel \
                 libcap-ng-devel file-devel libevent-devel \
                 libnetfilter_queue-devel libnfnetlink-devel jansson-devel \
-                hiredis-devel lz4-devel python3 python3-pip curl && \
+                hiredis-dev liblz4-dev python3 python3-pip curl && \
               curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
             configure_opts: --prefix=/usr --sysconfdir=/etc --localstatedir=/var --enable-nfqueue
-            # 没有 hyperscan
 
-          # ----------------- Rocky Linux 9 -----------------
           - distro: rockylinux-9
             image: rockylinux:9
             install_cmd: |
@@ -122,11 +110,9 @@ jobs:
                 pcre-devel libnet-devel libyaml-devel zlib-devel \
                 libcap-ng-devel file-devel libevent-devel \
                 libnetfilter_queue-devel libnfnetlink-devel jansson-devel \
-                hiredis-devel lz4-devel python3 python3-pip cargo rust
+                hiredis-dev liblz4-dev python3 python3-pip cargo rust
             configure_opts: --prefix=/usr --sysconfdir=/etc --localstatedir=/var --enable-nfqueue
-            # Rocky 9 也没有 hyperscan
 
-          # ----------------- Fedora 39 -----------------
           - distro: fedora-39
             image: fedora:39
             install_cmd: |
@@ -135,7 +121,7 @@ jobs:
                 pcre-devel libnet-devel libyaml-devel zlib-devel \
                 libcap-ng-devel file-devel libevent-devel \
                 libnetfilter_queue-devel libnfnetlink-devel jansson-devel \
-                hiredis-devel lz4-devel hyperscan-devel \
+                hiredis-dev liblz4-dev hyperscan-devel \
                 python3 python3-pip cargo rust
             configure_opts: --prefix=/usr --sysconfdir=/etc --localstatedir=/var --enable-nfqueue --enable-hyperscan
 
@@ -146,13 +132,10 @@ jobs:
         run: |
           docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace ${{ matrix.image }} bash -c "
             set -e
-            # 安装依赖（含 Rust）
             ${{ matrix.install_cmd }}
-            # 如果 Rust 是通过 rustup 安装的，则 source 环境
             if [ -f \$HOME/.cargo/env ]; then
               source \$HOME/.cargo/env
             fi
-            # 生成 configure 并编译
             ./autogen.sh
             ./configure ${{ matrix.configure_opts }}
             make -j\$(nproc)
@@ -173,9 +156,6 @@ jobs:
           path: ${{ steps.package.outputs.artifact_name }}
           retention-days: 7
 
-  # ============================================================
-  #  发布 Release（仅当推送 tag 时运行）
-  # ============================================================
   release:
     name: Create Release
     runs-on: ubuntu-latest
@@ -217,8 +197,9 @@ jobs:
             sudo cp -r usr/* /usr/
             sudo cp -r etc/* /etc/
             suricata --build-info
-          files: release-assets/*          # 指定要上传到 Release 的二进制包
-          draft: false                     # false=直接发布，不保存为草稿
-          prerelease: false                # false=正式版，true=预发布版
+          
+         files: release-assets/*
+         draft: false
+         prerelease: false
       env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # 必须的认证令牌，由 GitHub 自动提供
+         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
