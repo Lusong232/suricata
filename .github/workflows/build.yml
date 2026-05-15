@@ -35,7 +35,11 @@ jobs:
             build-essential autoconf automake libtool \
             libpcap-dev libpcre3-dev libyaml-dev libnet1-dev \
             libcap-ng-dev libjansson-dev pkg-config \
-            rustc cargo
+            rustc cargo \
+            libmagic-dev libunwind-dev
+
+          # 安装 cbindgen（必须）
+          cargo install --force cbindgen
 
           ./autogen.sh
           ./configure \
@@ -84,6 +88,9 @@ jobs:
         run: |
           brew install autoconf automake libtool \
             jansson libmagic libnet libpcap libyaml pcre2 pkg-config rust
+
+          # 安装 cbindgen
+          cargo install --force cbindgen
 
           ./autogen.sh
           ./configure --prefix=/usr/local --disable-gccmarch-native
