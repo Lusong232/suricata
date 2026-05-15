@@ -28,6 +28,7 @@ jobs:
             libnetfilter-queue-dev libnetfilter-log-dev \
             libnfnetlink-dev libjansson-dev \
             libhiredis-dev liblz4-dev libhyperscan-dev \
+            libpcap-dev \
             python3 python3-pip cargo rustc
 
       - name: Generate configure script
@@ -72,7 +73,7 @@ jobs:
                 libcap-ng-dev libmagic-dev libevent-dev \
                 libnetfilter-queue-dev libnetfilter-log-dev \
                 libnfnetlink-dev libjansson-dev \
-                libhiredis-dev liblz4-dev \
+                libhiredis-dev liblz4-dev libpcap-dev \
                 python3 python3-pip curl ca-certificates && \
               curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
             configure_opts: --prefix=/usr --sysconfdir=/etc --localstatedir=/var --enable-nfqueue
@@ -86,7 +87,7 @@ jobs:
                 libcap-ng-dev libmagic-dev libevent-dev \
                 libnetfilter-queue-dev libnetfilter-log-dev \
                 libnfnetlink-dev libjansson-dev \
-                libhiredis-dev liblz4-dev libhyperscan-dev \
+                libhiredis-dev liblz4-dev libhyperscan-dev libpcap-dev \
                 python3 python3-pip cargo rustc
             configure_opts: --prefix=/usr --sysconfdir=/etc --localstatedir=/var --enable-nfqueue --enable-hyperscan
 
@@ -98,7 +99,7 @@ jobs:
                 pcre-devel libnet-devel libyaml-devel zlib-devel \
                 libcap-ng-devel file-devel libevent-devel \
                 libnetfilter_queue-devel libnfnetlink-devel jansson-devel \
-                hiredis-dev liblz4-dev python3 python3-pip curl && \
+                hiredis-devel lz4-devel libpcap-devel python3 python3-pip curl && \
               curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
             configure_opts: --prefix=/usr --sysconfdir=/etc --localstatedir=/var --enable-nfqueue
 
@@ -110,7 +111,7 @@ jobs:
                 pcre-devel libnet-devel libyaml-devel zlib-devel \
                 libcap-ng-devel file-devel libevent-devel \
                 libnetfilter_queue-devel libnfnetlink-devel jansson-devel \
-                hiredis-dev liblz4-dev python3 python3-pip cargo rust
+                hiredis-devel lz4-devel libpcap-devel python3 python3-pip cargo rust
             configure_opts: --prefix=/usr --sysconfdir=/etc --localstatedir=/var --enable-nfqueue
 
           - distro: fedora-39
@@ -121,7 +122,7 @@ jobs:
                 pcre-devel libnet-devel libyaml-devel zlib-devel \
                 libcap-ng-devel file-devel libevent-devel \
                 libnetfilter_queue-devel libnfnetlink-devel jansson-devel \
-                hiredis-dev liblz4-dev hyperscan-devel \
+                hiredis-devel lz4-devel hyperscan-devel libpcap-devel \
                 python3 python3-pip cargo rust
             configure_opts: --prefix=/usr --sysconfdir=/etc --localstatedir=/var --enable-nfqueue --enable-hyperscan
 
