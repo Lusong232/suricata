@@ -220,5 +220,5 @@ jobs:
             files: release-assets/*          # 指定要上传到 Release 的二进制包
             draft: false                     # false=直接发布，不保存为草稿
             prerelease: false                # false=正式版，true=预发布版
-            env:
+        env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # 必须的认证令牌，由 GitHub 自动提供
