@@ -3,8 +3,8 @@ name: 多平台编译 Suricata
 on:
   push:
     tags:
-      - 'v*'                   # 推送 v1.0.0 格式的标签时自动触发
-  workflow_dispatch:           # 支持手动触发
+      - 'v*'
+  workflow_dispatch:
 
 jobs:
   build:
@@ -45,34 +45,36 @@ jobs:
           make -j$(nproc)
           make install DESTDIR=/tmp/suricata
 
-          # 打包
           cd /tmp
           tar -czf ${{ matrix.archive_name }}.tar.gz suricata
 
       # ---------- Windows 编译 ----------
-      - name: Windows - 安装 MSYS2 并编译
+      - name: Windows - 安装 MSYS2 环境
+        if: matrix.target == 'windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          install: >-
+            autoconf automake git make
+            mingw-w64-ucrt-x86_64-cbindgen
+            mingw-w64-ucrt-x86_64-jansson
+            mingw-w64-ucrt-x86_64-libpcap
+            mingw-w64-ucrt-x86_64-libtool
+            mingw-w64-ucrt-x86_64-libyaml
+            mingw-w64-ucrt-x86_64-pcre2
+            mingw-w64-ucrt-x86_64-rust
+            mingw-w64-ucrt-x86_64-toolchain
+            unzip
+
+      - name: Windows - 编译 Suricata
         if: matrix.target == 'windows'
         shell: msys2 {0}
         run: |
-          # 安装依赖
-          pacman -S --noconfirm autoconf automake git make \
-            mingw-w64-ucrt-x86_64-cbindgen \
-            mingw-w64-ucrt-x86_64-jansson \
-            mingw-w64-ucrt-x86_64-libpcap \
-            mingw-w64-ucrt-x86_64-libtool \
-            mingw-w64-ucrt-x86_64-libyaml \
-            mingw-w64-ucrt-x86_64-pcre2 \
-            mingw-w64-ucrt-x86_64-rust \
-            mingw-w64-ucrt-x86_64-toolchain \
-            unzip
-
-          # 编译
           ./autogen.sh
           ./configure --prefix=/usr/local --disable-gccmarch-native
           make -j$(nproc)
           make install DESTDIR=/tmp/suricata
 
-          # 打包为 zip
           cd /tmp
           7z a -tzip ${{ matrix.archive_name }}.zip suricata
 
